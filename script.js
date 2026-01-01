@@ -1,98 +1,104 @@
-
-const addButton = document.querySelector('.add-btn');
-const closeButton = document.querySelector('.close-btn');
-const modal = document.querySelector('#modal');
-const submitButton = document.querySelector('.submit-btn');
-const bookContainer = document.querySelector('.book-container');
-
+const addButton = document.querySelector(".add-btn");
+const closeButton = document.querySelector(".close-btn");
+const modal = document.querySelector("#modal");
+const bookContainer = document.querySelector(".book-container");
+const form = modal.querySelector("form");
 
 const books = [
-    new Book("1984", "George Orwell", "328", "Unread"),
-    new Book("Pride and Prejudice", "Jane Austen", "392", "Read"),
-    new Book("The Alchemist", "Paulo Coelho", "197", "Unread")
-
+  new Book("1984", "George Orwell", "328", "Unread"),
+  new Book("Pride and Prejudice", "Jane Austen", "392", "Read"),
+  new Book("The Alchemist", "Paulo Coelho", "197", "Unread"),
 ];
-books[0].id = "book1";
-books[1].id = "book2";
-books[2].id = "book3";
 
+books.forEach(renderBook);
 
 function Book(title, author, pages, status) {
-    this.id = crypto.randomUUID();
-    this.title = title;
-    this.author = author;
-    this.pages = pages;
-    this.status = status;
+  this.id = crypto.randomUUID();
+  this.title = title;
+  this.author = author;
+  this.pages = pages;
+  this.status = status;
 }
 
-
 Book.prototype.toggleRead = function () {
-    this.status = this.status === "Read" ? "Unread" : "Read";
+  this.status = this.status === "Read" ? "Unread" : "Read";
 };
 
-
-
 bookContainer.addEventListener("click", (e) => {
-    const bookDiv = e.target.closest(".books");
-    if (!bookDiv) return;
+  const bookDiv = e.target.closest(".books");
+  if (!bookDiv) return;
 
-    const bookId = bookDiv.dataset.id;
-    const book = books.find(b => b.id === bookId);
-    if (!book) return;
+  const bookId = bookDiv.dataset.id;
+  const book = books.find((b) => b.id === bookId);
+  if (!book) return;
 
-    
-    if (e.target.classList.contains("remove-button")) {
-        const index = books.findIndex(b => b.id === bookId);
-        books.splice(index, 1);
-        bookDiv.remove();
-    }
+  if (e.target.classList.contains("remove-button")) {
+    const index = books.findIndex((b) => b.id === bookId);
+    books.splice(index, 1);
+    bookDiv.remove();
+  }
 
-
-    if (e.target.classList.contains("markasread-button")) {
-        book.toggleRead();
-        bookDiv.querySelector(".status").textContent = book.status;
-    }
+  if (e.target.classList.contains("markasread-button")) {
+    book.toggleRead();
+    bookDiv.querySelector(".status").textContent = book.status;
+  }
 });
 
+// FORM VALIDATION WITH CONSTRAINT VALIDATIO API
 
-submitButton.addEventListener("click", (e) => {
-    e.preventDefault();
+const titleInput = form.querySelector("#title");
+const authorInput = form.querySelector("#author");
+const pagesInput = form.querySelector("#pages");
 
-    const form = e.target.closest("form");
+function attachValidation(input, message) {
+  input.addEventListener("invalid", () => {
+    input.setCustomValidity(message);
+  });
 
-    const title = form.querySelector("#title").value;
-    const author = form.querySelector("#author").value;
-    const pages = form.querySelector("#pages").value;
-    const isRead = form.querySelector("#read").checked;
+  input.addEventListener("input", () => {
+    input.setCustomValidity("");
+  });
+}
 
-    if (title && author && pages)
-    {
-        addBookToLibrary(title, author, pages, isRead ? "Read" : "Unread");
-    }
-    modal.close();
-    form.reset();
+attachValidation(titleInput, "The title must be filled!");
+attachValidation(authorInput, "The author must be filled!");
+attachValidation(pagesInput, "The pages must be filled!");
+
+form.addEventListener("submit", (e) => {
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+  e.preventDefault();
+
+  const title = form.querySelector("#title").value;
+  const author = form.querySelector("#author").value;
+  const pages = form.querySelector("#pages").value;
+  const isRead = form.querySelector("#read").checked;
+
+  addBookToLibrary(title, author, pages, isRead ? "Read" : "Unread");
+
+  modal.close();
+  form.reset();
 });
-
 
 addButton.addEventListener("click", () => modal.showModal());
 closeButton.addEventListener("click", () => modal.close());
 
-
-
 function addBookToLibrary(title, author, pages, status) {
-    const book = new Book(title, author, pages, status);
-    books.push(book);
-    renderBook(book);
+  const book = new Book(title, author, pages, status);
+  books.push(book);
+  renderBook(book);
 }
 
 function renderBook(book) {
-    const bookDiv = document.createElement('div');
-    bookDiv.classList.add('books');
+  const bookDiv = document.createElement("div");
+  bookDiv.classList.add("books");
 
-   
-    bookDiv.dataset.id = book.id;
+  bookDiv.dataset.id = book.id;
 
-    bookDiv.innerHTML = `
+  bookDiv.innerHTML = `
         <h3 class="title">${book.title}</h3>
         <p class="author">by ${book.author}</p>
         <p class="pages">${book.pages} pages</p>
@@ -103,5 +109,5 @@ function renderBook(book) {
         </div>
     `;
 
-    bookContainer.appendChild(bookDiv);
+  bookContainer.appendChild(bookDiv);
 }
